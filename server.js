@@ -451,6 +451,14 @@ async function updateUserRank(userId) {
   }
 }
 
+// ============= SERVE FRONTEND (same-origin, avoids CORS issues) =============
+const path = require('path');
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 // ============= ERROR HANDLING =============
 
 app.use((err, req, res, next) => {
