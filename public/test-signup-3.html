@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تست ثبت‌نام - تبلیغ‌یار</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: Arial, sans-serif;
+  background: #0a1f5c;
+  color: #fff;
+  padding: 20px;
+}
+h1 { color: #60a5fa; margin-bottom: 20px; font-size: 22px; }
+.form-group { margin-bottom: 15px; }
+label { display: block; margin-bottom: 5px; color: #60a5fa; }
+input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #2563eb;
+  border-radius: 6px;
+  background: #1e3a8a;
+  color: #fff;
+  font-size: 16px;
+}
+button {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  padding: 14px 30px;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 10px;
+}
+button:hover { background: #1d4ed8; }
+#result {
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 6px;
+  background: #1e3a8a;
+  border: 2px solid #60a5fa;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: monospace;
+  font-size: 14px;
+  display: none;
+}
+</style>
+</head>
+<body>
+
+<h1>🧪 تست اتصال به Backend</h1>
+
+<div class="form-group">
+  <label>نام</label>
+  <input type="text" id="name" placeholder="نام شما" value="آزمایشی">
+</div>
+
+<div class="form-group">
+  <label>ایمیل</label>
+  <input type="email" id="email" placeholder="test@example.com" value="test123@example.com">
+</div>
+
+<div class="form-group">
+  <label>رمز عبور</label>
+  <input type="password" id="password" placeholder="رمز عبور" value="test123456">
+</div>
+
+<button onclick="testSignup()">تست ثبت‌نام</button>
+<button onclick="testLogin()" style="background:#0088cc; margin-top:10px;">تست ورود</button>
+<button onclick="testSimpleGet()" style="background:#059669; margin-top:10px;">تست ساده GET</button>
+
+<div id="result"></div>
+
+<script>
+const API_URL = '';
+
+async function testSignup() {
+  const resultBox = document.getElementById('result');
+  resultBox.style.display = 'block';
+  resultBox.textContent = 'در حال ارسال...';
+
+  const name = document.getElementById('name').value;
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+
+  try {
+    const response = await fetch(`${API_URL}/api/auth/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password })
+    });
+    const data = await response.json();
+    resultBox.textContent = 'وضعیت: ' + response.status + '\n\n' + JSON.stringify(data, null, 2);
+  } catch (err) {
+    resultBox.textContent = 'خطا: ' + err.name + '\nپیام: ' + err.message + '\n\nدر حال تست بدون CORS...';
+    try {
+      const noCorsResp = await fetch(`${API_URL}/api/auth/signup`, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password })
+      });
+      resultBox.textContent += '\n\nتست بدون CORS موفق بود (type: ' + noCorsResp.type + ')\nیعنی مشکل دقیقاً CORS است، نه اتصال.';
+    } catch (err2) {
+      resultBox.textContent += '\n\nتست بدون CORS هم شکست خورد: ' + err2.message + '\nیعنی مشکل شبکه/اتصال است، نه CORS.';
+    }
+  }
+}
+
+async function testLogin() {
+  const resultBox = document.getElementById('result');
+  resultBox.style.display = 'block';
+  resultBox.textContent = 'در حال ارسال...';
+
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+
+  try {
+    const response = await fetch(`${API_URL}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await response.json();
+    resultBox.textContent = 'وضعیت: ' + response.status + '\n\n' + JSON.stringify(data, null, 2);
+  } catch (err) {
+    resultBox.textContent = 'خطا: ' + err.message;
+  }
+}
+async function testSimpleGet() {
+  const resultBox = document.getElementById('result');
+  resultBox.style.display = 'block';
+  resultBox.textContent = 'در حال تست GET ساده...';
+
+  try {
+    const response = await fetch(`${API_URL}/api/dashboard`);
+    const data = await response.json();
+    resultBox.textContent = 'موفق! وضعیت: ' + response.status + '\n\n' + JSON.stringify(data, null, 2) + '\n\nاین یعنی fetch از این دامنه کار می‌کند، پس مشکل فقط در درخواست POST است.';
+  } catch (err) {
+    resultBox.textContent = 'خطا در GET ساده: ' + err.name + ' - ' + err.message + '\n\nاین یعنی اصلاً fetch از جاوااسکریپت به این دامنه کار نمی‌کند.';
+  }
+}
+</script>
+
+</body>
+</html>
