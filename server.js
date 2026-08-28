@@ -20,26 +20,25 @@ app.use(cors({
 mongoose.set('bufferCommands', false);
 
 function connectDB() {
-  mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/tabligh-yar', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    serverSelectionTimeoutMS: 30000,
-    socketTimeoutMS: 45000,
-    family: 4
-  }).then(() => {
-    console.log('MongoDB Connected Successfully!');
-  }).catch(err => {
-    console.log('MongoDB Connection Error:', err.message);
-    setTimeout(connectDB, 5000);
-  });
+  mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/tabligh-yar')
+    .then(() => {
+      console.log('MongoDB Connected Successfully! readyState:', mongoose.connection.readyState);
+    })
+    .catch(err => {
+      console.log('MongoDB Connection Error:', err.message);
+      setTimeout(connectDB, 5000);
+    });
 }
 connectDB();
 
+mongoose.connection.on('connected', () => {
+  console.log('Mongoose event: connected');
+});
 mongoose.connection.on('error', (err) => {
   console.log('MongoDB runtime error:', err.message);
 });
 mongoose.connection.on('disconnected', () => {
-  console.log('MongoDB disconnected, retrying...');
+  console.log('Mongoose event: disconnected, retrying...');
   setTimeout(connectDB, 5000);
 });
 
