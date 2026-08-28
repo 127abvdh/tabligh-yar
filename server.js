@@ -461,6 +461,16 @@ async function updateUserRank(userId) {
   }
 }
 
+// Diagnostic endpoint - check live DB connection state
+app.get('/api/db-status', (req, res) => {
+  const states = ['disconnected', 'connected', 'connecting', 'disconnecting'];
+  res.json({
+    readyState: mongoose.connection.readyState,
+    readyStateText: states[mongoose.connection.readyState] || 'unknown',
+    host: mongoose.connection.host || null
+  });
+});
+
 // ============= SERVE FRONTEND (same-origin, avoids CORS issues) =============
 const path = require('path');
 app.use(express.static(path.join(__dirname, 'public')));
