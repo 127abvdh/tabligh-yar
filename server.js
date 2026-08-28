@@ -19,8 +19,18 @@ app.use(cors({
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/tabligh-yar', {
   useNewUrlParser: true,
-  useUnifiedTopology: true
+  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 30000
+}).then(() => {
+  console.log('MongoDB Connected Successfully!');
 }).catch(err => console.log('MongoDB Connection Error:', err));
+
+mongoose.connection.on('error', (err) => {
+  console.log('MongoDB runtime error:', err.message);
+});
+mongoose.connection.on('disconnected', () => {
+  console.log('MongoDB disconnected');
+});
 
 // Commission Configuration
 const COMMISSIONS = {
