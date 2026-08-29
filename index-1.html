@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تبلیغ‌یار - پلتفرم معرفی کسب‌وکارها</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0a1f5c 0%, #1e3a8a 100%);
+      color: #333;
+      min-height: 100vh;
+    }
+
+    /* ===== Header/Navbar ===== */
+    header {
+      background: rgba(10, 31, 92, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #2563eb;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      color: #60a5fa;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-auth, .btn-logout {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.3s;
+    }
+
+    .btn-auth:hover, .btn-logout:hover {
+      background: #1d4ed8;
+    }
+
+    .user-info {
+      color: #60a5fa;
+      font-size: 14px;
+      display: none;
+    }
+
+    /* ===== Hero Section ===== */
+    .hero {
+      padding: 60px 20px;
+      text-align: center;
+      color: white;
+    }
+
+    .hero h1 {
+      font-size: 48px;
+      margin-bottom: 15px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .hero p {
+      font-size: 20px;
+      margin-bottom: 30px;
+      color: #e0e7ff;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary, .btn-secondary {
+      padding: 15px 40px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-weight: bold;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      border: 2px solid #60a5fa;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(60, 165, 250, 0.2);
+    }
+
+    /* ===== Features Section ===== */
+    .features {
+      padding: 60px 20px;
+      background: white;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 30px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .feature-card {
+      background: #f8fafc;
+      padding: 30px;
+      border-radius: 12px;
+      border-left: 4px solid #2563eb;
+      text-align: center;
+    }
+
+    .feature-card h3 {
+      color: #0a1f5c;
+      margin-bottom: 10px;
+      font-size: 20px;
+    }
+
+    .feature-card p {
+      color: #666;
+      font-size: 14px;
+    }
+
+    /* ===== Business Request Section ===== */
+    .business-request {
+      padding: 60px 20px;
+      background: linear-gradient(135deg, #0a1f5c 0%, #1e3a8a 100%);
+      color: white;
+      text-align: center;
+    }
+
+    .business-request h2 {
+      font-size: 36px;
+      margin-bottom: 20px;
+    }
+
+    .business-request p {
+      font-size: 16px;
+      margin-bottom: 30px;
+      color: #e0e7ff;
+    }
+
+    /* ===== Modal ===== */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+      position: relative;
+      animation: slideUp 0.3s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(50px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .close-modal {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: none;
+      border: none;
+      font-size: 28px;
+      cursor: pointer;
+      color: #999;
+    }
+
+    .modal-title {
+      color: #0a1f5c;
+      margin-bottom: 20px;
+      text-align: center;
+      font-size: 24px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      color: #0a1f5c;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #e0e7ff;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #2563eb;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .btn-submit, .btn-toggle {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+
+    .btn-submit {
+      background: #2563eb;
+      color: white;
+    }
+
+    .btn-submit:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-toggle {
+      background: #e0e7ff;
+      color: #0a1f5c;
+    }
+
+    .btn-toggle:hover {
+      background: #c7d2fe;
+    }
+
+    .modal-message {
+      color: #dc2626;
+      font-size: 12px;
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    /* ===== Loading ===== */
+    .loading {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 2px solid #f0f0f0;
+      border-radius: 50%;
+      border-top-color: #2563eb;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ===== Footer ===== */
+    footer {
+      background: #0a1f5c;
+      color: white;
+      padding: 30px 20px;
+      text-align: center;
+      border-top: 2px solid #2563eb;
+    }
+
+    footer p {
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    .bank-info {
+      background: rgba(37, 99, 235, 0.1);
+      padding: 15px;
+      border-radius: 6px;
+      margin-top: 15px;
+      font-size: 12px;
+      border: 1px solid #2563eb;
+    }
+
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 32px; }
+      .hero p { font-size: 16px; }
+      .hero-buttons { flex-direction: column; }
+      .btn-primary, .btn-secondary { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="logo">
+    🔥 تبلیغ‌یار
+  </div>
+  <div class="nav-buttons">
+    <div class="user-info" id="userInfo">
+      خوش‌آمدید، <span id="userName"></span>
+    </div>
+    <button class="btn-auth" id="btnAuth" onclick="openAuthModal()">ورود / ثبت‌نام</button>
+    <button class="btn-logout" id="btnLogout" onclick="logout()" style="display:none;">خروج</button>
+  </div>
+</header>
+
+<!-- Hero Section -->
+<section class="hero">
+  <h1>تبلیغ‌یار 🔥</h1>
+  <p>پلتفرم معرفی کسب‌وکارهای تهران — درآمد داشته باشید با معرفی کسب‌وکارهای دیگران</p>
+  <div class="hero-buttons">
+    <button class="btn-primary" onclick="scrollToBusinessRequest()">درخواست تبلیغ برای کسب‌وکارم</button>
+    <button class="btn-secondary" onclick="openAuthModal()">معرف شوید و درآمد کسب کنید</button>
+  </div>
+</section>
+
+<!-- Features Section -->
+<section class="features">
+  <div class="features-grid">
+    <div class="feature-card">
+      <h3>💰 درآمد عالی</h3>
+      <p>۶۵٪ برای هر فروش مستقیم + ۱۰٪ تا ۲٪ برای تیمتان</p>
+    </div>
+    <div class="feature-card">
+      <h3>🚀 رشد سریع</h3>
+      <p>رتبه‌های مختلف: منیجر، لیدر، رهبر سایت و بیشتر</p>
+    </div>
+    <div class="feature-card">
+      <h3>🔗 شبکه‌ی قوی</h3>
+      <p>سیستم تیم‌سازی: تشکیل تیم و کسب درآمد مستقیم + غیرمستقیم</p>
+    </div>
+  </div>
+</section>
+
+<!-- Business Request Section -->
+<section class="business-request" id="businessRequest">
+  <h2>آیا صاحب کسب‌وکار هستید؟</h2>
+  <p>کسب‌وکارتان را در دایرکتوری ما ثبت کنید و بیشتر مشتری جذب کنید</p>
+  <button class="btn-primary" onclick="openBusinessRequest()">درخواست تبلیغ بدهید</button>
+</section>
+
+<!-- Auth Modal -->
+<div class="modal" id="authModal">
+  <div class="modal-content">
+    <button class="close-modal" onclick="closeAuthModal()">✕</button>
+    
+    <div id="loginForm">
+      <h2 class="modal-title">ورود</h2>
+      <div class="form-group">
+        <label>شماره تلفن</label>
+        <input type="text" id="loginPhone" placeholder="09123456789">
+      </div>
+      <div class="form-group">
+        <label>رمز عبور</label>
+        <input type="password" id="loginPassword" placeholder="رمز عبور">
+      </div>
+      <div class="modal-buttons">
+        <button class="btn-submit" onclick="handleLogin()">ورود</button>
+        <button class="btn-toggle" onclick="toggleAuthForm()">ثبت‌نام</button>
+      </div>
+      <div class="modal-message" id="loginMessage"></div>
+    </div>
+
+    <div id="signupForm" style="display:none;">
+      <h2 class="modal-title">ثبت‌نام</h2>
+      <div class="form-group">
+        <label>نام</label>
+        <input type="text" id="signupName" placeholder="نام کامل">
+      </div>
+      <div class="form-group">
+        <label>شماره تلفن</label>
+        <input type="text" id="signupPhone" placeholder="09123456789">
+      </div>
+      <div class="form-group">
+        <label>رمز عبور</label>
+        <input type="password" id="signupPassword" placeholder="رمز عبور">
+      </div>
+      <div class="form-group">
+        <label>کد معرفی (اختیاری)</label>
+        <input type="text" id="referralCode" placeholder="کد معرفی دوست">
+      </div>
+      <div class="modal-buttons">
+        <button class="btn-submit" onclick="handleSignup()">ثبت‌نام</button>
+        <button class="btn-toggle" onclick="toggleAuthForm()">ورود</button>
+      </div>
+      <div class="modal-message" id="signupMessage"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Business Request Modal -->
+<div class="modal" id="businessModal">
+  <div class="modal-content">
+    <button class="close-modal" onclick="closeBusinessRequest()">✕</button>
+    <h2 class="modal-title">درخواست تبلیغ</h2>
+    <div class="form-group">
+      <label>نام کسب‌وکار</label>
+      <input type="text" id="businessName" placeholder="نام کسب‌وکار">
+    </div>
+    <div class="form-group">
+      <label>توضیحات</label>
+      <input type="text" id="businessDesc" placeholder="خدماتتان را توضیح دهید">
+    </div>
+    <div class="form-group">
+      <label>شماره تماس</label>
+      <input type="text" id="businessPhone" placeholder="09123456789">
+    </div>
+    <div class="form-group">
+      <label>انتخاب بسته</label>
+      <select id="packageType" style="width:100%; padding:10px; border:2px solid #e0e7ff; border-radius:6px;">
+        <option value="bronze">برنزی - ۵ میلیون تومان / ۱ ماه</option>
+        <option value="silver">نقره‌ای - ۱۵ میلیون تومان / ۳ ماه</option>
+        <option value="gold">طلایی - ۴۰ میلیون تومان / ۱ سال</option>
+      </select>
+    </div>
+    <button class="btn-submit" onclick="submitBusinessRequest()" style="width:100%; margin-top:10px;">ادامه به پرداخت</button>
+    <div class="modal-message" id="businessMessage"></div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer>
+  <p><strong>تبلیغ‌یار</strong> - پلتفرم معرفی کسب‌وکارهای تهران</p>
+  <div class="bank-info">
+    <strong>حساب بانکی برای واریز درآمد:</strong><br>
+    بانک پاسارگاد | شماره حساب: 397.8000.23462560.1<br>
+    نام: میر فرزاد ولایی خیابانی
+  </div>
+  <p style="margin-top:20px; font-size:12px;">© ۱۴۰۵ تبلیغ‌یار - تمام حقوق محفوظ است</p>
+</footer>
+
+<script>
+  const API_URL = '';
+
+  // Check if user is logged in
+  window.addEventListener('load', () => {
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    if (token && user) {
+      showUserLoggedIn(JSON.parse(user));
+    }
+  });
+
+  function openAuthModal() {
+    document.getElementById('authModal').classList.add('active');
+  }
+
+  function closeAuthModal() {
+    document.getElementById('authModal').classList.remove('active');
+    clearMessages();
+  }
+
+  function toggleAuthForm() {
+    document.getElementById('loginForm').style.display = 
+      document.getElementById('loginForm').style.display === 'none' ? 'block' : 'none';
+    document.getElementById('signupForm').style.display = 
+      document.getElementById('signupForm').style.display === 'none' ? 'block' : 'none';
+    clearMessages();
+  }
+
+  async function handleLogin() {
+    const phone = document.getElementById('loginPhone').value;
+    const password = document.getElementById('loginPassword').value;
+    const msgEl = document.getElementById('loginMessage');
+
+    if (!phone || !password) {
+      msgEl.textContent = 'تمام فیلد‌ها الزامی هستند';
+      return;
+    }
+
+    msgEl.innerHTML = '<div class="loading"></div> در حال ورود...';
+
+    try {
+      const res = await fetch(`${API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, password })
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        msgEl.textContent = '✓ ورود موفق! تغییر صفحه...';
+        msgEl.style.color = '#16a34a';
+        setTimeout(() => {
+          closeAuthModal();
+          showUserLoggedIn(data.user);
+          window.location.href = '/dashboard.html';
+        }, 1500);
+      } else {
+        msgEl.textContent = data.message || 'خطا در ورود';
+      }
+    } catch (err) {
+      msgEl.textContent = 'خطای شبکه: ' + err.message;
+    }
+  }
+
+  async function handleSignup() {
+    const name = document.getElementById('signupName').value;
+    const phone = document.getElementById('signupPhone').value;
+    const password = document.getElementById('signupPassword').value;
+    const referralCode = document.getElementById('referralCode').value || null;
+    const msgEl = document.getElementById('signupMessage');
+
+    if (!name || !phone || !password) {
+      msgEl.textContent = 'نام، تلفن و رمز عبور الزامی هستند';
+      return;
+    }
+
+    msgEl.innerHTML = '<div class="loading"></div> در حال ثبت‌نام...';
+
+    try {
+      const res = await fetch(`${API_URL}/api/auth/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, phone, password, referralCode })
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        msgEl.textContent = '✓ ثبت‌نام موفق! تغییر صفحه...';
+        msgEl.style.color = '#16a34a';
+        setTimeout(() => {
+          closeAuthModal();
+          showUserLoggedIn(data.user);
+          window.location.href = '/dashboard.html';
+        }, 1500);
+      } else {
+        msgEl.textContent = data.message || 'خطا در ثبت‌نام';
+      }
+    } catch (err) {
+      msgEl.textContent = 'خطای شبکه: ' + err.message;
+    }
+  }
+
+  function showUserLoggedIn(user) {
+    document.getElementById('btnAuth').style.display = 'none';
+    document.getElementById('userInfo').style.display = 'block';
+    document.getElementById('btnLogout').style.display = 'block';
+    document.getElementById('userName').textContent = user.name;
+  }
+
+  function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    location.reload();
+  }
+
+  function openBusinessRequest() {
+    document.getElementById('businessModal').classList.add('active');
+  }
+
+  function closeBusinessRequest() {
+    document.getElementById('businessModal').classList.remove('active');
+  }
+
+  function scrollToBusinessRequest() {
+    document.getElementById('businessRequest').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  async function submitBusinessRequest() {
+    const name = document.getElementById('businessName').value;
+    const desc = document.getElementById('businessDesc').value;
+    const phone = document.getElementById('businessPhone').value;
+    const pkg = document.getElementById('packageType').value;
+    const msgEl = document.getElementById('businessMessage');
+
+    if (!name || !phone || !pkg) {
+      msgEl.textContent = 'تمام فیلد‌ها الزامی هستند';
+      return;
+    }
+
+    msgEl.innerHTML = '<div class="loading"></div> درحال پردازش...';
+
+    // اینجا بعداً درگاه پرداخت اضافه می‌کنیم
+    msgEl.textContent = '✓ درخواست شما ثبت شد! به زودی صفحه‌ی پرداخت باز می‌شود...';
+    msgEl.style.color = '#16a34a';
+
+    // TODO: Connect to Zarinpal payment gateway
+  }
+
+  function clearMessages() {
+    document.getElementById('loginMessage').textContent = '';
+    document.getElementById('signupMessage').textContent = '';
+    document.getElementById('businessMessage').textContent = '';
+  }
+</script>
+
+</body>
+</html>
