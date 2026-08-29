@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>داشبورد - تبلیغ‌یار</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f4f8;
+      color: #333;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(135deg, #0a1f5c 0%, #1e3a8a 100%);
+      color: white;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-left h1 {
+      font-size: 24px;
+      margin-bottom: 5px;
+    }
+
+    .header-left p {
+      font-size: 14px;
+      color: #e0e7ff;
+    }
+
+    .header-right {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-logout {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: 1px solid white;
+      padding: 8px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .btn-logout:hover {
+      background: rgba(255, 0, 0, 0.3);
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 0 15px;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      border-left: 4px solid #2563eb;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-label {
+      color: #666;
+      font-size: 12px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: bold;
+      color: #0a1f5c;
+    }
+
+    .stat-subtext {
+      font-size: 12px;
+      color: #999;
+      margin-top: 5px;
+    }
+
+    /* Sections */
+    .section {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      margin-bottom: 25px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .section h2 {
+      color: #0a1f5c;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #e0e7ff;
+      font-size: 20px;
+    }
+
+    /* Referral Code */
+    .referral-box {
+      background: #f0f4f8;
+      padding: 20px;
+      border-radius: 8px;
+      border: 2px dashed #2563eb;
+      text-align: center;
+    }
+
+    .referral-code {
+      font-size: 24px;
+      font-weight: bold;
+      color: #2563eb;
+      margin: 10px 0;
+      font-family: monospace;
+    }
+
+    .referral-link {
+      background: white;
+      padding: 10px;
+      border-radius: 6px;
+      margin-top: 10px;
+      font-size: 12px;
+      word-break: break-all;
+      border: 1px solid #e0e7ff;
+    }
+
+    .btn-copy {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+      font-size: 12px;
+    }
+
+    .btn-copy:hover {
+      background: #1d4ed8;
+    }
+
+    /* Rank Info */
+    .rank-display {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .rank-info {
+      background: #f0f4f8;
+      padding: 15px;
+      border-radius: 8px;
+      border-left: 4px solid #2563eb;
+    }
+
+    .rank-info h4 {
+      color: #0a1f5c;
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+
+    .rank-info p {
+      color: #2563eb;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    /* Progress Bar */
+    .progress-bar {
+      background: #e0e7ff;
+      height: 8px;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .progress-fill {
+      background: linear-gradient(90deg, #2563eb, #60a5fa);
+      height: 100%;
+      transition: width 0.3s;
+    }
+
+    .progress-text {
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+    }
+
+    /* Team Table */
+    .team-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    .team-table th {
+      background: #f0f4f8;
+      padding: 12px;
+      text-align: right;
+      font-size: 12px;
+      color: #0a1f5c;
+      font-weight: bold;
+      border-bottom: 2px solid #e0e7ff;
+    }
+
+    .team-table td {
+      padding: 12px;
+      border-bottom: 1px solid #e0e7ff;
+    }
+
+    .team-table tr:hover {
+      background: #f8fafc;
+    }
+
+    /* Rank Badge */
+    .rank-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .rank-seller { background: #dbeafe; color: #1e40af; }
+    .rank-manager { background: #ccfbf1; color: #0d5e52; }
+    .rank-leader { background: #fef3c7; color: #92400e; }
+    .rank-top-leader { background: #fed7aa; color: #7c2d12; }
+    .rank-top-earner { background: #fccf8f; color: #7c2d12; }
+    .rank-site-leader { background: #fbbf24; color: #451a03; }
+
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 30px;
+      height: 30px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #2563eb;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .error-message {
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      .rank-display {
+        grid-template-columns: 1fr;
+      }
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="header-left">
+    <h1>داشبورد تبلیغ‌یار</h1>
+    <p id="userGreeting">خوش‌آمدید</p>
+  </div>
+  <div class="header-right">
+    <button class="btn-logout" onclick="logout()">خروج</button>
+  </div>
+</header>
+
+<!-- Main Content -->
+<div class="container">
+
+  <!-- Error Message -->
+  <div id="errorMessage" style="display:none;" class="error-message"></div>
+
+  <!-- Loading State -->
+  <div id="loading" class="loading">
+    <div class="spinner"></div>
+    <p>در حال بارگذاری...</p>
+  </div>
+
+  <!-- Content (Hidden until loaded) -->
+  <div id="content" style="display:none;">
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">فروش‌های شخصی (این ماه)</div>
+        <div class="stat-value" id="ownSales">۰</div>
+        <div class="stat-subtext">از درخواست‌های مستقیم</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">فروش‌های تیم</div>
+        <div class="stat-value" id="teamSales">۰</div>
+        <div class="stat-subtext">کل فروش تیم شما</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">درآمد این ماه</div>
+        <div class="stat-value" id="monthlyComm">۰</div>
+        <div class="stat-subtext">کمیشن و درآمد</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">درآمد کل</div>
+        <div class="stat-value" id="totalEarnings">۰</div>
+        <div class="stat-subtext">تمام درآمد‌های شما</div>
+      </div>
+    </div>
+
+    <!-- Profile Section -->
+    <div class="section">
+      <h2>پروفایل</h2>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-top:15px;">
+        <div>
+          <strong style="color:#0a1f5c;">نام:</strong>
+          <p id="profileName" style="color:#666; margin-top:5px;">-</p>
+        </div>
+        <div>
+          <strong style="color:#0a1f5c;">شماره تلفن:</strong>
+          <p id="profilePhone" style="color:#666; margin-top:5px;">-</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rank Section -->
+    <div class="section">
+      <h2>رتبه و پیشرفت</h2>
+      <div class="rank-display">
+        <div class="rank-info">
+          <h4>رتبه فعلی</h4>
+          <p id="currentRank">-</p>
+        </div>
+        <div class="rank-info">
+          <h4>رتبه بعدی</h4>
+          <p id="nextRank">-</p>
+        </div>
+      </div>
+      <div>
+        <h4 style="color:#0a1f5c; margin-bottom:8px;">پیشرفت تا رتبه‌ی بعد:</h4>
+        <div class="progress-bar">
+          <div class="progress-fill" id="rankProgress" style="width:0%"></div>
+        </div>
+        <div class="progress-text">
+          فروش تیم: <strong id="currentTeamSales">۰</strong> / <strong id="nextThreshold">-</strong> میلیون تومان
+        </div>
+      </div>
+    </div>
+
+    <!-- Referral Section -->
+    <div class="section">
+      <h2>معرفی دوستان</h2>
+      <div class="referral-box">
+        <p style="color:#666; margin-bottom:10px;">کد معرفی شما:</p>
+        <div class="referral-code" id="referralCode">-</div>
+        <button class="btn-copy" onclick="copyReferralCode()">کپی کد</button>
+        <p style="color:#999; font-size:12px; margin-top:10px;">با این کد، دوستان می‌توانند ثبت‌نام کنند و شما درآمد داشته باشید</p>
+      </div>
+    </div>
+
+    <!-- Team Section -->
+    <div class="section">
+      <h2>تیم مستقیم</h2>
+      <p style="color:#666; margin-bottom:15px;">تعداد اعضای تیم: <strong id="teamCount">۰</strong> نفر</p>
+      <table class="team-table" id="teamTable" style="display:none;">
+        <thead>
+          <tr>
+            <th>نام</th>
+            <th>شماره تلفن</th>
+            <th>رتبه</th>
+            <th>فروش تیم</th>
+          </tr>
+        </thead>
+        <tbody id="teamBody">
+        </tbody>
+      </table>
+      <p id="noTeam" style="color:#999; text-align:center; padding:20px;">هنوز هیچ فردی در تیمتان نیست</p>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  const API_URL = '';
+
+  window.addEventListener('load', () => {
+    checkAuth();
+    loadDashboard();
+  });
+
+  function checkAuth() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      window.location.href = '/';
+      return;
+    }
+  }
+
+  async function loadDashboard() {
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user'));
+
+    try {
+      // Fetch dashboard data
+      const dashRes = await fetch(`${API_URL}/api/dashboard`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      if (!dashRes.ok) {
+        if (dashRes.status === 401) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          window.location.href = '/';
+          return;
+        }
+        throw new Error('خطا در بارگذاری داشبورد');
+      }
+
+      const dashData = await dashRes.json();
+
+      // Format numbers to Persian
+      const toPersian = (n) => n.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+
+      // Update stats
+      document.getElementById('ownSales').textContent = toPersian(Math.floor(dashData.stats.ownSalesThisMonth / 1000000)) + 'M';
+      document.getElementById('teamSales').textContent = toPersian(Math.floor(dashData.stats.teamSalesThisMonth / 1000000)) + 'M';
+      document.getElementById('monthlyComm').textContent = toPersian(Math.floor(dashData.stats.totalCommission / 1000000)) + 'M';
+      document.getElementById('totalEarnings').textContent = toPersian(Math.floor(dashData.stats.totalEarnings / 1000000)) + 'M';
+
+      // Update profile
+      document.getElementById('userGreeting').textContent = `سلام، ${dashData.user.name}`;
+      document.getElementById('profileName').textContent = dashData.user.name;
+      document.getElementById('profilePhone').textContent = dashData.user.phone;
+
+      // Update rank
+      const rankNames = {
+        'seller': 'فروشنده',
+        'manager': 'منیجر',
+        'leader': 'لیدر',
+        'top_leader': 'رهبر ارشد',
+        'top_earner': 'برترین درآمدزا',
+        'site_leader': 'رهبر سایت'
+      };
+
+      document.getElementById('currentRank').textContent = rankNames[dashData.rankProgress.current] || dashData.rankProgress.current;
+      document.getElementById('nextRank').textContent = rankNames[dashData.rankProgress.nextRank] || dashData.rankProgress.nextRank;
+      document.getElementById('rankProgress').style.width = dashData.rankProgress.progress + '%';
+      document.getElementById('currentTeamSales').textContent = toPersian(Math.floor(dashData.rankProgress.currentTeamSales / 1000000));
+      document.getElementById('nextThreshold').textContent = toPersian(Math.floor(dashData.rankProgress.nextThreshold / 1000000));
+
+      // Update referral code
+      document.getElementById('referralCode').textContent = user.referralCode || '-';
+
+      // Fetch team
+      const teamRes = await fetch(`${API_URL}/api/user/team`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const teamData = await teamRes.json();
+
+      document.getElementById('teamCount').textContent = toPersian(teamData.directTeamCount);
+
+      if (teamData.directTeam && teamData.directTeam.length > 0) {
+        document.getElementById('noTeam').style.display = 'none';
+        document.getElementById('teamTable').style.display = 'table';
+
+        const tbody = document.getElementById('teamBody');
+        tbody.innerHTML = '';
+
+        teamData.directTeam.forEach(member => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${member.name}</td>
+            <td>${member.phone}</td>
+            <td><span class="rank-badge rank-${member.currentRank}">${rankNames[member.currentRank] || member.currentRank}</span></td>
+            <td>${toPersian(Math.floor(member.totalTeamSales / 1000000))}M</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // Show content
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('content').style.display = 'block';
+
+    } catch (err) {
+      console.error(err);
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('errorMessage').style.display = 'block';
+      document.getElementById('errorMessage').textContent = err.message;
+    }
+  }
+
+  function copyReferralCode() {
+    const code = document.getElementById('referralCode').textContent;
+    navigator.clipboard.writeText(code).then(() => {
+      alert('کد معرفی کپی شد!');
+    });
+  }
+
+  function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.href = '/';
+  }
+</script>
+
+</body>
+</html>
