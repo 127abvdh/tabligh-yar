@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>درخواست تبلیغ - تبلیغ‌یار</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0a1f5c 0%, #1e3a8a 100%);
+      color: #333;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 30px auto;
+    }
+
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+    }
+
+    .header h1 {
+      font-size: 36px;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      font-size: 16px;
+      color: #e0e7ff;
+    }
+
+    /* Form Section */
+    .form-section {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      margin-bottom: 30px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .form-section h2 {
+      color: #0a1f5c;
+      margin-bottom: 20px;
+      font-size: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      color: #0a1f5c;
+      margin-bottom: 8px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e7ff;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color 0.3s;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    /* Package Selection */
+    .packages-section {
+      margin-bottom: 30px;
+    }
+
+    .packages-section h2 {
+      color: #0a1f5c;
+      margin-bottom: 20px;
+      font-size: 20px;
+    }
+
+    .packages-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .package-card {
+      background: white;
+      border: 2px solid #e0e7ff;
+      border-radius: 12px;
+      padding: 25px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .package-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .package-card.selected {
+      border-color: #2563eb;
+      background: #f0f4f8;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .package-icon {
+      font-size: 40px;
+      margin-bottom: 10px;
+    }
+
+    .package-name {
+      font-size: 16px;
+      font-weight: bold;
+      color: #0a1f5c;
+      margin-bottom: 10px;
+    }
+
+    .package-price {
+      font-size: 24px;
+      font-weight: bold;
+      color: #2563eb;
+      margin-bottom: 10px;
+    }
+
+    .package-duration {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 15px;
+    }
+
+    .package-desc {
+      font-size: 12px;
+      color: #666;
+      line-height: 1.5;
+    }
+
+    /* Price Summary */
+    .price-summary {
+      background: #f0f4f8;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      border-left: 4px solid #2563eb;
+    }
+
+    .price-summary h3 {
+      color: #0a1f5c;
+      margin-bottom: 15px;
+      font-size: 16px;
+    }
+
+    .price-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #e0e7ff;
+    }
+
+    .price-row:last-child {
+      border-bottom: none;
+      font-weight: bold;
+      font-size: 16px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 2px solid #e0e7ff;
+    }
+
+    .price-label {
+      color: #0a1f5c;
+    }
+
+    .price-value {
+      color: #2563eb;
+      font-weight: bold;
+    }
+
+    /* Buttons */
+    .btn-submit {
+      width: 100%;
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      color: white;
+      border: none;
+      padding: 16px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-back {
+      background: white;
+      color: #0a1f5c;
+      border: 2px solid #2563eb;
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-bottom: 20px;
+      font-weight: bold;
+    }
+
+    .btn-back:hover {
+      background: #f0f4f8;
+    }
+
+    /* Message */
+    .message {
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: none;
+      font-size: 14px;
+    }
+
+    .message.success {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #86efac;
+    }
+
+    .message.error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 2px solid #f0f0f0;
+      border-radius: 50%;
+      border-top-color: #2563eb;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .bank-info {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+      font-size: 12px;
+      color: #78350f;
+    }
+
+    .bank-info strong {
+      color: #92400e;
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 24px;
+      }
+      .packages-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>درخواست تبلیغ 🔥</h1>
+    <p>کسب‌وکارتان را در دایرکتوری ما ثبت کنید و مشتری جذب کنید</p>
+  </div>
+
+  <button class="btn-back" onclick="history.back()">← بازگشت</button>
+
+  <div id="message" class="message"></div>
+
+  <!-- Form Section -->
+  <div class="form-section">
+    <h2>اطلاعات کسب‌وکار</h2>
+    
+    <div class="form-group">
+      <label>نام کسب‌وکار *</label>
+      <input type="text" id="businessName" placeholder="نام رسمی کسب‌وکار" required>
+    </div>
+
+    <div class="form-group">
+      <label>توضیح مختصر *</label>
+      <textarea id="businessDesc" placeholder="خدمات و محصولاتتان را توضیح دهید" required></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>شماره تماس *</label>
+      <input type="text" id="businessPhone" placeholder="09123456789" required>
+    </div>
+
+    <div class="form-group">
+      <label>نام تماس‌گیرنده</label>
+      <input type="text" id="contactName" placeholder="نام شخصی (اختیاری)">
+    </div>
+
+    <div class="form-group">
+      <label>آدرس کسب‌وکار</label>
+      <input type="text" id="businessAddress" placeholder="آدرس (اختیاری)">
+    </div>
+  </div>
+
+  <!-- Package Selection -->
+  <div class="form-section packages-section">
+    <h2>انتخاب بسته</h2>
+    
+    <div class="packages-grid">
+      <div class="package-card" onclick="selectPackage('bronze', 5000000)">
+        <div class="package-icon">🥉</div>
+        <div class="package-name">برنزی</div>
+        <div class="package-price">۵ میلیون</div>
+        <div class="package-duration">۱ ماه</div>
+        <div class="package-desc">برای کسب‌وکارهای کوچک و جدید</div>
+      </div>
+
+      <div class="package-card" onclick="selectPackage('silver', 15000000)">
+        <div class="package-icon">🥈</div>
+        <div class="package-name">نقره‌ای</div>
+        <div class="package-price">۱۵ میلیون</div>
+        <div class="package-duration">۳ ماه</div>
+        <div class="package-desc">برای کسب‌وکارهای درحال رشد</div>
+      </div>
+
+      <div class="package-card" onclick="selectPackage('gold', 40000000)">
+        <div class="package-icon">🥇</div>
+        <div class="package-name">طلایی</div>
+        <div class="package-price">۴۰ میلیون</div>
+        <div class="package-duration">۱ سال</div>
+        <div class="package-desc">برای کسب‌وکارهای بزرگ</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Price Summary -->
+  <div class="form-section">
+    <div class="price-summary">
+      <h3>خلاصه‌ی هزینه</h3>
+      <div class="price-row">
+        <span class="price-label">قیمت بسته:</span>
+        <span class="price-value" id="packagePrice">انتخاب بسته</span>
+      </div>
+      <div class="price-row">
+        <span class="price-label">جمع کل:</span>
+        <span class="price-value" id="totalPrice">۰</span>
+      </div>
+    </div>
+
+    <button class="btn-submit" id="submitBtn" onclick="submitRequest()" disabled>
+      ادامه به پرداخت
+    </button>
+
+    <div class="bank-info">
+      <strong>💡 نکته:</strong><br>
+      پس از تایید درخواست، به صفحه‌ی پرداخت (Zarinpal) منتقل می‌شوید. پس از پرداخت موفق، کسب‌وکار شما در دایرکتوری ثابت می‌شود.
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let selectedPackage = null;
+  let selectedPrice = 0;
+
+  function toPersian(n) {
+    return n.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+  }
+
+  function selectPackage(pkg, price) {
+    selectedPackage = pkg;
+    selectedPrice = price;
+
+    // Update UI
+    document.querySelectorAll('.package-card').forEach(card => {
+      card.classList.remove('selected');
+    });
+    event.currentTarget.classList.add('selected');
+
+    // Update price
+    document.getElementById('packagePrice').textContent = toPersian(Math.floor(price / 1000000)) + ' میلیون تومان';
+    document.getElementById('totalPrice').textContent = toPersian(Math.floor(price / 1000000)) + ' میلیون تومان';
+    document.getElementById('submitBtn').disabled = false;
+  }
+
+  function showMessage(text, type) {
+    const msgEl = document.getElementById('message');
+    msgEl.textContent = text;
+    msgEl.className = 'message ' + type;
+    msgEl.style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  async function submitRequest() {
+    const name = document.getElementById('businessName').value.trim();
+    const desc = document.getElementById('businessDesc').value.trim();
+    const phone = document.getElementById('businessPhone').value.trim();
+    const contactName = document.getElementById('contactName').value.trim();
+    const address = document.getElementById('businessAddress').value.trim();
+
+    if (!name || !desc || !phone || !selectedPackage) {
+      showMessage('لطفاً تمام فیلد‌های الزامی (*) را پرکنید', 'error');
+      return;
+    }
+
+    // Validate phone
+    if (!/^\d{10,11}$/.test(phone.replace(/\D/g, ''))) {
+      showMessage('شماره تلفن معتبر نیست', 'error');
+      return;
+    }
+
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('submitBtn').innerHTML = '<div class="loading"></div> در حال پردازش...';
+
+    try {
+      // TODO: Create business request in database
+      // TODO: Generate Zarinpal payment link
+      // TODO: Redirect to payment gateway
+
+      const response = await fetch(`/api/business-request`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          businessName: name,
+          description: desc,
+          phone: phone,
+          contactName: contactName,
+          address: address,
+          package: selectedPackage,
+          amount: selectedPrice
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.paymentUrl) {
+        // Redirect to payment gateway
+        window.location.href = data.paymentUrl;
+      } else {
+        throw new Error(data.message || 'خطا در ارسال درخواست');
+      }
+    } catch (err) {
+      showMessage('خطا: ' + err.message, 'error');
+      document.getElementById('submitBtn').disabled = false;
+      document.getElementById('submitBtn').innerHTML = 'ادامه به پرداخت';
+    }
+  }
+</script>
+
+</body>
+</html>
