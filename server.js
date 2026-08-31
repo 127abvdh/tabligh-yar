@@ -16,24 +16,25 @@ const userSchema = new mongoose.Schema({
   phone: String,
   password: String,
   referralCode: String,
-  directTeamMembers: [String],
-  totalTeamSales: { type: Number, default: 0 },
-  currentRank: { type: String, default: 'seller' },
+  totalEarnings: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now }
 });
 
-const saleSchema = new mongoose.Schema({
-  seller: String,
+const businessRequestSchema = new mongoose.Schema({
   businessName: String,
+  businessPhone: String,
+  businessAddress: String,
   packageType: String,
   amount: Number,
-  description: String,
-  paymentStatus: { type: String, default: 'pending' },
+  referrerUserId: mongoose.Schema.Types.ObjectId,
+  referrerCode: String,
+  paymentStatus: { type: String, default: 'completed' },
+  refId: String,
   createdAt: { type: Date, default: Date.now }
 });
 
 const User = mongoose.model('User', userSchema);
-const Sale = mongoose.model('Sale', saleSchema);
+const BusinessRequest = mongoose.model('BusinessRequest', businessRequestSchema);
 
 // Auth middleware
 const auth = (req, res, next) => {
@@ -80,28 +81,41 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-// Create sale
-app.post('/api/sales/create', auth, async (req, res) => {
+// Business Request
+app.post('/api/business-request', async (req, res) => {
   try {
-    const { businessName, packageType, amount } = req.body;
-    const sale = await Sale.create({ 
-      seller: req.user._id, 
-      businessName, 
-      packageType, 
-      amount, 
-      description: '' 
+    const { businessName, businessPhone, businessAddress, packageType, referrerCode } = req.body;
+    
+    const prices = { bronze: 5000000, silver: 15000000, gold: 40000000 };
+    const amount = prices[packageType];
+    
+    let referrerUserId = null;
+    if (referrerCode) {
+      const referrer = await User.findOne({ referralCode: referrerCode });
+      referrerUserId = referrer ? referrer._id : null;
+    }
+    
+    const request = await BusinessRequest.create({
+      businessName,
+      businessPhone,
+      businessAddress,
+      packageType,
+      amount,
+      referrerUserId,
+      referrerCode: referrerCode || null,
+      paymentStatus: 'completed',
+      refId: 'TEST_' + Date.now()
     });
-    res.status(201).json({ message: 'OK', sale });
-  } catch (e) {
-    res.status(400).json({ message: e.message });
-  }
-});
-
-// Get user sales
-app.get('/api/sales/user', auth, async (req, res) => {
-  try {
-    const sales = await Sale.find({ seller: req.user._id });
-    res.json({ sales });
+    
+    // اگر referrer هست، درآمد رو اضافه کن
+    if (referrerUserId) {
+      await User.findByIdAndUpdate(
+        referrerUserId,
+        { $inc: { totalEarnings: Math.floor(amount * 0.65) } }
+      );
+    }
+    
+    res.status(201).json({ message: 'OK', requestId: request._id });
   } catch (e) {
     res.status(400).json({ message: e.message });
   }
@@ -111,26 +125,26 @@ app.get('/api/sales/user', auth, async (req, res) => {
 app.get('/api/dashboard', auth, async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
-    const sales = await Sale.find({ seller: req.user._id });
-    const ownSales = sales.reduce((sum, s) => sum + s.amount, 0);
-    const commission = Math.floor(ownSales * 0.65);
+    const earnings = user.totalEarnings || 0;
+    const requests = await BusinessRequest.find({ referrerUserId: req.user._id });
     
     res.json({
-      user,
+      user: { name: user.name, phone: user.phone, referralCode: user.referralCode },
       stats: {
-        ownSalesThisMonth: ownSales,
-        teamSalesThisMonth: 0,
-        totalCommission: commission,
-        totalEarnings: commission
-      },
-      rankProgress: { 
-        current: user.currentRank, 
-        nextRank: 'manager', 
-        progress: 0 
-      },
-      team: [],
-      directTeamCount: 0
+        totalEarnings: earnings,
+        totalCommission: earnings,
+        requestCount: requests.length
+      }
     });
+  } catch (e) {
+    res.status(400).json({ message: e.message });
+  }
+});
+
+app.get('/api/requests', auth, async (req, res) => {
+  try {
+    const requests = await BusinessRequest.find({ referrerUserId: req.user._id });
+    res.json({ requests });
   } catch (e) {
     res.status(400).json({ message: e.message });
   }
@@ -138,15 +152,15 @@ app.get('/api/dashboard', auth, async (req, res) => {
 
 // Pages
 app.get('/', (req, res) => {
-  res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>تبلیغ‌یار</title><style>body{background:#0a1f5c;color:#fff;text-align:center;padding:40px;font-family:Arial}h1{font-size:32px}button{background:#2563eb;color:#fff;padding:12px 30px;border:none;border-radius:6px;cursor:pointer;margin:10px}</style></head><body><h1>تبلیغ‌یار 📢</h1><p>دایرکتوری کسب‌وکارها</p><button onclick="showLogin()">ورود</button> <button onclick="showSignup()">ثبت‌نام</button><script>function showLogin(){const phone=prompt('تلفن:');const pass=prompt('رمز:');fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone,password:pass})}).then(r=>r.json()).then(d=>{localStorage.setItem('token',d.token);localStorage.setItem('user',JSON.stringify(d.user));window.location.href='/dashboard.html'})}function showSignup(){const name=prompt('نام:');const phone=prompt('تلفن:');const pass=prompt('رمز:');fetch('/api/auth/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,phone,password:pass})}).then(r=>r.json()).then(d=>{localStorage.setItem('token',d.token);localStorage.setItem('user',JSON.stringify(d.user));window.location.href='/dashboard.html'})}</script></body></html>`);
+  res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>تبلیغ‌یار</title><style>body{background:#0a1f5c;color:#fff;text-align:center;padding:40px;font-family:Arial}h1{font-size:32px}.btn{background:#2563eb;color:#fff;padding:12px 30px;border:none;border-radius:6px;cursor:pointer;margin:10px;font-size:14px}</style></head><body><h1>تبلیغ‌یار 📢</h1><p style="font-size:16px;margin-bottom:30px">دایرکتوری کسب‌وکارهای تهران</p><button class="btn" onclick="window.location.href='/business-request.html'">📝 درخواست تبلیغ</button><button class="btn" onclick="showLoginForm()">🔐 ورود فروشندگان</button><script>function showLoginForm(){const phone=prompt('شماره تلفن:');if(!phone)return;const pass=prompt('رمز عبور:');if(!pass)return;fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone,password:pass})}).then(r=>r.json()).then(d=>{if(d.token){localStorage.setItem('token',d.token);localStorage.setItem('user',JSON.stringify(d.user));window.location.href='/dashboard.html'}else{alert('❌ ورود ناموفق')}}).catch(()=>alert('❌ خطا'))}</script></body></html>`);
+});
+
+app.get('/business-request.html', (req, res) => {
+  res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>درخواست تبلیغ</title><style>*{margin:0;padding:0}body{font-family:Arial;background:#f0f4f8;padding:20px}h1{color:#0a1f5c;margin-bottom:20px}.container{max-width:500px;margin:0 auto;background:#fff;padding:25px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.1)}input,select{display:block;width:100%;padding:12px;margin:10px 0;border:2px solid #e0e7ff;border-radius:8px;font-size:14px}label{display:block;margin-top:15px;color:#0a1f5c;font-weight:bold;font-size:12px}.price-box{background:#f0f4f8;padding:15px;margin:15px 0;border-radius:8px;text-align:center}.price-value{font-size:24px;font-weight:bold;color:#2563eb}.btn{width:100%;padding:12px;background:#2563eb;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:bold;margin-top:15px}</style></head><body><div class="container"><h1>📝 درخواست تبلیغ</h1><div><label>نام کسب‌وکار</label><input type="text" id="name" placeholder="نام کسب‌وکارتان"></div><div><label>شماره تلفن</label><input type="tel" id="phone" placeholder="۰۹XXXXXXXXX"></div><div><label>آدرس</label><input type="text" id="address" placeholder="آدرس کسب‌وکار (اختیاری)"></div><div><label>انتخاب بسته</label><select id="package" onchange="updatePrice()"><option value="">-- بسته را انتخاب کنید --</option><option value="bronze">🥉 برنزی - ۵ میلیون تومان</option><option value="silver">🥈 نقره‌ای - ۱۵ میلیون تومان</option><option value="gold">🥇 طلایی - ۴۰ میلیون تومان</option></select></div><div class="price-box"><div>قیمت:</div><div class="price-value"><span id="price">۰</span></div></div><div><label>کد معرفی (اختیاری)</label><input type="text" id="referrerCode" placeholder="کد معرفی فروشنده"></div><button class="btn" onclick="submitRequest()">✓ تایید و پرداخت</button><p style="text-align:center;color:#999;font-size:12px;margin-top:15px">برای تست: از بسته برنزی استفاده کنید</p></div><script>function updatePrice(){const pkg=document.getElementById('package').value;const prices={bronze:'۵ میلیون',silver:'۱۵ میلیون',gold:'۴۰ میلیون'};document.getElementById('price').textContent=prices[pkg]||'۰'}function submitRequest(){const name=document.getElementById('name').value;const phone=document.getElementById('phone').value;const address=document.getElementById('address').value;const pkg=document.getElementById('package').value;const referrerCode=document.getElementById('referrerCode').value;if(!name||!phone||!pkg){alert('❌ نام، تلفن و بسته الزامی هستند');return}fetch('/api/business-request',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({businessName:name,businessPhone:phone,businessAddress:address,packageType:pkg,referrerCode:referrerCode})}).then(r=>r.json()).then(d=>{alert('✓ درخواست ثبت شد! کسب‌وکارتان به دایرکتوری اضافه شد.');window.location.href='/'}).catch(e=>{alert('❌ خطا: '+e.message)})}</script></body></html>`);
 });
 
 app.get('/dashboard.html', (req, res) => {
-  res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>داشبورد</title><style>*{margin:0;padding:0}body{font-family:Arial;background:#f0f4f8}header{background:#0a1f5c;color:#fff;padding:10px;display:flex;justify-content:space-between}a{color:#fff;text-decoration:none}.card{background:#fff;padding:15px;margin:10px}</style></head><body><header><h1 style="font-size:14px">📊 داشبورد</h1><div><a href="/sales.html" style="margin-right:20px">📝 فروش</a><button onclick="logout()" style="background:red;color:#fff;border:none;cursor:pointer;padding:8px">خروج</button></div></header><div class="card"><p>درآمد: <span id="s">۰</span></p><p>نام: <span id="n">-</span></p><p>فروش‌های شما: <span id="count">۰</span></p></div><script>const token=localStorage.getItem('token');if(!token)window.location.href='/';fetch('/api/dashboard',{headers:{Authorization:'Bearer '+token}}).then(r=>r.json()).then(d=>{document.getElementById('s').textContent=Math.floor(d.stats.totalEarnings/1e6)+'M';document.getElementById('n').textContent=d.user.name;fetch('/api/sales/user',{headers:{Authorization:'Bearer '+token}}).then(r=>r.json()).then(s=>{document.getElementById('count').textContent=s.sales.length})}).catch(()=>alert('خطا'));function logout(){localStorage.clear();window.location.href='/'}</script></body></html>`);
-});
-
-app.get('/sales.html', (req, res) => {
-  res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>فروش</title><style>*{margin:0;padding:0}body{font-family:Arial;background:#f0f4f8}header{background:#0a1f5c;color:#fff;padding:10px}.form{background:#fff;padding:20px;margin:20px}.form input{display:block;width:100%;padding:10px;margin:10px 0;border:1px solid #ddd;border-radius:4px}button{width:100%;padding:10px;background:#2563eb;color:#fff;border:none;border-radius:4px;cursor:pointer;margin-top:10px}</style></head><body><header><h1 style="font-size:14px">📊 فروش</h1></header><div class="form"><input type="text" id="name" placeholder="نام کسب"><select id="pkg" style="width:100%;padding:10px;margin:10px 0"><option value="bronze">🥉 برنزی - ۵M</option><option value="silver">🥈 نقره‌ای - ۱۵M</option><option value="gold">🥇 طلایی - ۴۰M</option></select><input type="number" id="amount" placeholder="مبلغ"><button onclick="submit()">ثبت</button><button onclick="window.location.href='/dashboard.html'" style="background:#999">برگشت</button></div><script>const token=localStorage.getItem('token');if(!token)window.location.href='/';function submit(){const name=document.getElementById('name').value;const pkg=document.getElementById('pkg').value;const amount=document.getElementById('amount').value;fetch('/api/sales/create',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({businessName:name,packageType:pkg,amount:parseInt(amount)})}).then(r=>r.json()).then(d=>{alert('✓ ثبت شد');document.getElementById('name').value='';document.getElementById('amount').value='';window.location.href='/dashboard.html'}).catch(()=>alert('خطا'))}</script></body></html>`);
+  res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>داشبورد فروشنده</title><style>*{margin:0;padding:0}body{font-family:Arial;background:#f0f4f8}header{background:#0a1f5c;color:#fff;padding:15px;display:flex;justify-content:space-between;align-items:center}h1{font-size:18px}.container{max-width:800px;margin:20px auto;padding:0 15px}.card{background:#fff;padding:20px;margin-bottom:15px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.1)}.stat{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:20px}.stat-item{background:#f0f4f8;padding:15px;border-radius:8px}.stat-label{color:#666;font-size:12px}.stat-value{font-size:28px;font-weight:bold;color:#0a1f5c;margin-top:5px}table{width:100%;border-collapse:collapse}th{background:#f0f4f8;padding:10px;text-align:right;font-weight:bold;border-bottom:2px solid #e0e7ff}td{padding:10px;border-bottom:1px solid #e0e7ff}button{background:red;color:#fff;border:none;padding:8px 15px;border-radius:6px;cursor:pointer}</style></head><body><header><h1>📊 داشبورد فروشنده</h1><button onclick="logout()">خروج</button></header><div class="container"><div class="card"><div class="stat"><div class="stat-item"><div class="stat-label">درآمد کل</div><div class="stat-value"><span id="earnings">۰</span></div></div><div class="stat-item"><div class="stat-label">تعداد درخواست‌ها</div><div class="stat-value"><span id="requestCount">۰</span></div></div></div><p style="color:#666">کد معرفی: <strong id="referralCode">-</strong></p></div><div class="card"><h2 style="color:#0a1f5c;margin-bottom:15px">درخواست‌های شما</h2><table><thead><tr><th>نام کسب‌وکار</th><th>بسته</th><th>مبلغ</th><th>تاریخ</th></tr></thead><tbody id="requestsTable"><tr><td colspan="4" style="text-align:center;color:#999">در حال بارگذاری...</td></tr></tbody></table></div></div><script>const token=localStorage.getItem('token');const user=JSON.parse(localStorage.getItem('user'))||{};if(!token){window.location.href='/';throw new Error('No token')}function toPersian(n){return n.toString().replace(/\\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d])}fetch('/api/dashboard',{headers:{Authorization:'Bearer '+token}}).then(r=>r.json()).then(d=>{document.getElementById('earnings').textContent=toPersian(Math.floor(d.stats.totalEarnings/1e6))+'M';document.getElementById('requestCount').textContent=toPersian(d.stats.requestCount);document.getElementById('referralCode').textContent=user.referralCode||'-'});fetch('/api/requests',{headers:{Authorization:'Bearer '+token}}).then(r=>r.json()).then(d=>{const tbody=document.getElementById('requestsTable');if(d.requests.length===0){tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:#999">درخواستی ندارید</td></tr>';return}tbody.innerHTML=d.requests.map(r=>{const date=new Date(r.createdAt).toLocaleDateString('fa-IR');return '<tr><td>'+r.businessName+'</td><td>'+r.packageType+'</td><td>'+toPersian(Math.floor(r.amount/1e6))+'M</td><td>'+date+'</td></tr>'}).join('')});function logout(){localStorage.clear();window.location.href='/'}</script></body></html>`);
 });
 
 app.listen(8080, () => {
