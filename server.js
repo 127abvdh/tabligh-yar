@@ -81,19 +81,28 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-// Business Request
+// Business Request - Requires referrerCode AND address
 app.post('/api/business-request', async (req, res) => {
   try {
     const { businessName, businessPhone, businessAddress, packageType, referrerCode } = req.body;
     
+    // Validate ALL required fields
+    if (!referrerCode || referrerCode.trim() === '') {
+      return res.status(400).json({ message: 'کد معرفی الزامی است' });
+    }
+    
+    if (!businessAddress || businessAddress.trim() === '') {
+      return res.status(400).json({ message: 'آدرس الزامی است' });
+    }
+    
+    // Find referrer by code
+    const referrer = await User.findOne({ referralCode: referrerCode });
+    if (!referrer) {
+      return res.status(400).json({ message: 'کد معرفی نامعتبر است' });
+    }
+    
     const prices = { bronze: 5000000, silver: 15000000, gold: 40000000 };
     const amount = prices[packageType];
-    
-    let referrerUserId = null;
-    if (referrerCode) {
-      const referrer = await User.findOne({ referralCode: referrerCode });
-      referrerUserId = referrer ? referrer._id : null;
-    }
     
     const request = await BusinessRequest.create({
       businessName,
@@ -101,19 +110,18 @@ app.post('/api/business-request', async (req, res) => {
       businessAddress,
       packageType,
       amount,
-      referrerUserId,
-      referrerCode: referrerCode || null,
+      referrerUserId: referrer._id,
+      referrerCode: referrerCode,
       paymentStatus: 'completed',
       refId: 'TEST_' + Date.now()
     });
     
-    // اگر referrer هست، درآمد رو اضافه کن
-    if (referrerUserId) {
-      await User.findByIdAndUpdate(
-        referrerUserId,
-        { $inc: { totalEarnings: Math.floor(amount * 0.65) } }
-      );
-    }
+    // Add earnings to referrer
+    const commission = Math.floor(amount * 0.65);
+    await User.findByIdAndUpdate(
+      referrer._id,
+      { $inc: { totalEarnings: commission } }
+    );
     
     res.status(201).json({ message: 'OK', requestId: request._id });
   } catch (e) {
@@ -156,7 +164,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/business-request.html', (req, res) => {
-  res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>درخواست تبلیغ</title><style>*{margin:0;padding:0}body{font-family:Arial;background:#f0f4f8;padding:20px}h1{color:#0a1f5c;margin-bottom:20px}.container{max-width:500px;margin:0 auto;background:#fff;padding:25px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.1)}input,select{display:block;width:100%;padding:12px;margin:10px 0;border:2px solid #e0e7ff;border-radius:8px;font-size:14px}label{display:block;margin-top:15px;color:#0a1f5c;font-weight:bold;font-size:12px}.price-box{background:#f0f4f8;padding:15px;margin:15px 0;border-radius:8px;text-align:center}.price-value{font-size:24px;font-weight:bold;color:#2563eb}.btn{width:100%;padding:12px;background:#2563eb;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:bold;margin-top:15px}</style></head><body><div class="container"><h1>📝 درخواست تبلیغ</h1><div><label>نام کسب‌وکار</label><input type="text" id="name" placeholder="نام کسب‌وکارتان"></div><div><label>شماره تلفن</label><input type="tel" id="phone" placeholder="۰۹XXXXXXXXX"></div><div><label>آدرس</label><input type="text" id="address" placeholder="آدرس کسب‌وکار (اختیاری)"></div><div><label>انتخاب بسته</label><select id="package" onchange="updatePrice()"><option value="">-- بسته را انتخاب کنید --</option><option value="bronze">🥉 برنزی - ۵ میلیون تومان</option><option value="silver">🥈 نقره‌ای - ۱۵ میلیون تومان</option><option value="gold">🥇 طلایی - ۴۰ میلیون تومان</option></select></div><div class="price-box"><div>قیمت:</div><div class="price-value"><span id="price">۰</span></div></div><div><label>کد معرفی (اختیاری)</label><input type="text" id="referrerCode" placeholder="کد معرفی فروشنده"></div><button class="btn" onclick="submitRequest()">✓ تایید و پرداخت</button><p style="text-align:center;color:#999;font-size:12px;margin-top:15px">برای تست: از بسته برنزی استفاده کنید</p></div><script>function updatePrice(){const pkg=document.getElementById('package').value;const prices={bronze:'۵ میلیون',silver:'۱۵ میلیون',gold:'۴۰ میلیون'};document.getElementById('price').textContent=prices[pkg]||'۰'}function submitRequest(){const name=document.getElementById('name').value;const phone=document.getElementById('phone').value;const address=document.getElementById('address').value;const pkg=document.getElementById('package').value;const referrerCode=document.getElementById('referrerCode').value;if(!name||!phone||!pkg){alert('❌ نام، تلفن و بسته الزامی هستند');return}fetch('/api/business-request',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({businessName:name,businessPhone:phone,businessAddress:address,packageType:pkg,referrerCode:referrerCode})}).then(r=>r.json()).then(d=>{alert('✓ درخواست ثبت شد! کسب‌وکارتان به دایرکتوری اضافه شد.');window.location.href='/'}).catch(e=>{alert('❌ خطا: '+e.message)})}</script></body></html>`);
+  res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>درخواست تبلیغ</title><style>*{margin:0;padding:0}body{font-family:Arial;background:#f0f4f8;padding:20px}h1{color:#0a1f5c;margin-bottom:20px}.container{max-width:500px;margin:0 auto;background:#fff;padding:25px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.1)}input,select{display:block;width:100%;padding:12px;margin:10px 0;border:2px solid #e0e7ff;border-radius:8px;font-size:14px}label{display:block;margin-top:15px;color:#0a1f5c;font-weight:bold;font-size:12px}.price-box{background:#f0f4f8;padding:15px;margin:15px 0;border-radius:8px;text-align:center}.price-value{font-size:24px;font-weight:bold;color:#2563eb}.btn{width:100%;padding:12px;background:#2563eb;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:bold;margin-top:15px}.required{color:red}</style></head><body><div class="container"><h1>📝 درخواست تبلیغ</h1><div><label>نام کسب‌وکار <span class="required">*</span></label><input type="text" id="name" placeholder="نام کسب‌وکارتان"></div><div><label>شماره تلفن <span class="required">*</span></label><input type="tel" id="phone" placeholder="۰۹XXXXXXXXX"></div><div><label>آدرس <span class="required">*</span></label><input type="text" id="address" placeholder="آدرس کسب‌وکار (الزامی)"></div><div><label>انتخاب بسته <span class="required">*</span></label><select id="package" onchange="updatePrice()"><option value="">-- بسته را انتخاب کنید --</option><option value="bronze">🥉 برنزی - ۵ میلیون تومان</option><option value="silver">🥈 نقره‌ای - ۱۵ میلیون تومان</option><option value="gold">🥇 طلایی - ۴۰ میلیون تومان</option></select></div><div class="price-box"><div>قیمت:</div><div class="price-value"><span id="price">۰</span></div></div><div><label>کد معرفی <span class="required">*</span></label><input type="text" id="referrerCode" placeholder="کد معرفی فروشنده (الزامی)"></div><button class="btn" onclick="submitRequest()">✓ تایید و پرداخت</button><p style="text-align:center;color:#999;font-size:12px;margin-top:15px">تمام فیلدهای علامت‌دار (*) الزامی هستند</p></div><script>function updatePrice(){const pkg=document.getElementById('package').value;const prices={bronze:'۵ میلیون',silver:'۱۵ میلیون',gold:'۴۰ میلیون'};document.getElementById('price').textContent=prices[pkg]||'۰'}function submitRequest(){const name=document.getElementById('name').value;const phone=document.getElementById('phone').value;const address=document.getElementById('address').value;const pkg=document.getElementById('package').value;const referrerCode=document.getElementById('referrerCode').value;if(!name||!phone||!address||!pkg||!referrerCode){alert('❌ تمام فیلدهای الزامی را پر کنید');return}fetch('/api/business-request',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({businessName:name,businessPhone:phone,businessAddress:address,packageType:pkg,referrerCode:referrerCode})}).then(r=>r.json()).then(d=>{if(d.message==='OK'){alert('✓ درخواست ثبت شد! کسب‌وکارتان به دایرکتوری اضافه شد.');window.location.href='/'}else{alert('❌ '+d.message)}}).catch(e=>{alert('❌ خطا: '+e.message)})}</script></body></html>`);
 });
 
 app.get('/dashboard.html', (req, res) => {
