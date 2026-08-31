@@ -158,9 +158,23 @@ app.get('/api/requests', auth, async (req, res) => {
   }
 });
 
+// Directory - Get all approved businesses
+app.get('/api/directory', async (req, res) => {
+  try {
+    const businesses = await BusinessRequest.find({ paymentStatus: 'completed' });
+    res.json({ businesses });
+  } catch (e) {
+    res.status(400).json({ message: e.message });
+  }
+});
+
 // Pages
 app.get('/', (req, res) => {
-  res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>تبلیغ‌یار</title><style>body{background:#0a1f5c;color:#fff;text-align:center;padding:40px;font-family:Arial}h1{font-size:32px}.btn{background:#2563eb;color:#fff;padding:12px 30px;border:none;border-radius:6px;cursor:pointer;margin:10px;font-size:14px}</style></head><body><h1>تبلیغ‌یار 📢</h1><p style="font-size:16px;margin-bottom:30px">دایرکتوری کسب‌وکارهای تهران</p><button class="btn" onclick="window.location.href='/business-request.html'">📝 درخواست تبلیغ</button><button class="btn" onclick="showLoginForm()">🔐 ورود فروشندگان</button><script>function showLoginForm(){const phone=prompt('شماره تلفن:');if(!phone)return;const pass=prompt('رمز عبور:');if(!pass)return;fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone,password:pass})}).then(r=>r.json()).then(d=>{if(d.token){localStorage.setItem('token',d.token);localStorage.setItem('user',JSON.stringify(d.user));window.location.href='/dashboard.html'}else{alert('❌ ورود ناموفق')}}).catch(()=>alert('❌ خطا'))}</script></body></html>`);
+  res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>تبلیغ‌یار</title><style>body{background:#0a1f5c;color:#fff;text-align:center;padding:40px;font-family:Arial}h1{font-size:32px}.btn{background:#2563eb;color:#fff;padding:12px 30px;border:none;border-radius:6px;cursor:pointer;margin:10px;font-size:14px}</style></head><body><h1>تبلیغ‌یار 📢</h1><p style="font-size:16px;margin-bottom:30px">دایرکتوری کسب‌وکارهای تهران</p><button class="btn" onclick="window.location.href='/directory.html'">📂 مشاهدهی دایرکتوری</button><button class="btn" onclick="window.location.href='/business-request.html'">📝 درخواست تبلیغ</button><button class="btn" onclick="showLoginForm()">🔐 ورود فروشندگان</button><script>function showLoginForm(){const phone=prompt('شماره تلفن:');if(!phone)return;const pass=prompt('رمز عبور:');if(!pass)return;fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone,password:pass})}).then(r=>r.json()).then(d=>{if(d.token){localStorage.setItem('token',d.token);localStorage.setItem('user',JSON.stringify(d.user));window.location.href='/dashboard.html'}else{alert('❌ ورود ناموفق')}}).catch(()=>alert('❌ خطا'))}</script></body></html>`);
+});
+
+app.get('/directory.html', (req, res) => {
+  res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>دایرکتوری</title><style>*{margin:0;padding:0}body{font-family:Arial;background:#f0f4f8}header{background:#0a1f5c;color:#fff;padding:15px;text-align:center}h1{font-size:20px}main{max-width:1000px;margin:20px auto;padding:0 15px}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}.card{background:#fff;padding:20px;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.1);border-left:5px solid #2563eb}.card h2{color:#0a1f5c;margin-bottom:10px;font-size:18px}.card p{color:#666;margin:8px 0;font-size:14px}.badge{display:inline-block;background:#2563eb;color:#fff;padding:6px 12px;border-radius:20px;margin-top:10px;font-size:12px}.back-btn{background:#0a1f5c;color:#fff;padding:10px 20px;border:none;border-radius:6px;cursor:pointer;margin-bottom:20px}</style></head><body><header><h1>📂 دایرکتوری کسب‌وکارهای تهران</h1></header><main><button class="back-btn" onclick="window.location.href='/'">⬅ بازگشت</button><div class="grid" id="grid"><div style="text-align:center;color:#999">در حال بارگذاری...</div></div></main><script>fetch('/api/directory').then(r=>r.json()).then(d=>{const grid=document.getElementById('grid');if(d.businesses.length===0){grid.innerHTML='<p style="text-align:center;color:#999">هنوز کسب‌وکاری ثبت نشده است</p>';return}grid.innerHTML=d.businesses.map(b=>{const pkg={bronze:'🥉 برنزی',silver:'🥈 نقره‌ای',gold:'🥇 طلایی'};return '<div class="card"><h2>'+b.businessName+'</h2><p>📍 '+b.businessAddress+'</p><p>☎️ '+b.businessPhone+'</p><span class="badge">'+pkg[b.packageType]+'</span></div>'}).join('')}).catch(e=>alert('❌ خطا: '+e.message))</script></body></html>`);
 });
 
 app.get('/business-request.html', (req, res) => {
